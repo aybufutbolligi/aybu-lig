@@ -704,6 +704,9 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
                   <option>Kaleci</option><option>Defans</option><option selected>Orta Saha</option><option>Forvet</option>
                 </select>
               </div>
+              <div class="form-group" style="margin:0"><label class="form-label">Fotoğraf (opsiyonel)</label>
+                <div class="upload-zone"><input type="file" accept="image/*" id="p-photo"><div class="upload-text">📷 <em>Fotoğraf yükle</em></div></div>
+              </div>
             </div>
             <button class="btn btn-primary" style="margin-top:12px" onclick="addPlayer()">➕ Oyuncu Ekle</button>
           </div>
@@ -737,10 +740,25 @@ function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 
 // ── Firebase save (debounced) ──
 let _saveTimer=null;
+function calcMarketValues(){
+  // Gol: +15, Asist: +8, Sarı kart: -5, Kırmızı kart: -20
+  // Başlangıç: 100. Min: 10, Max: 999
+  const stats=computeStats();
+  GROUPS.forEach(g=>{
+    (TEAMS[g]||[]).forEach(team=>{
+      (PLAYERS[team]||[]).forEach(p=>{
+        const ps=stats.find(s=>s.name===p.name&&s.team===team)||{goals:0,assists:0,yellow:0,red:0};
+        const score=100+(ps.goals||0)*15+(ps.assists||0)*8-(ps.yellow||0)*5-(ps.red||0)*20;
+        p.value=Math.max(10,Math.min(999,score));
+      });
+    });
+  });
+}
 function fbSave(){
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(()=>{
     if(!window._db)return;
+    calcMarketValues();
     const payload={
       teams: TEAMS,
       results: RESULTS,
@@ -1081,12 +1099,18 @@ function openTeamDetail(name){
     if(ps.assists>0)tags.push(`<span class="ptag ptag-a">🎯 ${ps.assists}</span>`);
     if(ps.yellow>0)tags.push(`<span class="ptag ptag-y"><span class="card-y"></span> ${ps.yellow}</span>`);
     if(ps.red>0)tags.push(`<span class="ptag ptag-r"><span class="card-r"></span> ${ps.red}</span>`);
+    const val=p.value||100;
+    const valColor=val>100?'var(--accent-l)':val<100?'var(--red-l)':'var(--text3)';
+    const valArrow=val>100?'▲':val<100?'▼':'–';
     return`<div class="player-card">
-      <div class="player-num-badge">${p.num||'?'}</div>
+      ${p.photo
+        ?`<img src="${p.photo}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border2)">`
+        :`<div class="player-num-badge">${p.num||'?'}</div>`}
       <div class="player-info">
         <div class="player-name">${p.name}</div>
         <div class="player-pos">${p.pos}</div>
         ${tags.length?`<div class="player-tags">${tags.join('')}</div>`:''}
+        <div style="font-size:10px;font-weight:700;color:${valColor};margin-top:3px;font-family:'JetBrains Mono',monospace">${valArrow} ${val} puan</div>
       </div>
     </div>`;
   }).join('')}</div>`:'<div class="empty-state">Oyuncu eklenmedi</div>';
@@ -1508,11 +1532,21 @@ function addPlayer(){
   if(!name){showAlertId('p-alert','Ad boş olamaz!',false);return;}
   if(!PLAYERS[selPTeam])PLAYERS[selPTeam]=[];
   if(PLAYERS[selPTeam].find(p=>p.name===name)){showAlertId('p-alert','Bu oyuncu zaten kayıtlı!',false);return;}
-  PLAYERS[selPTeam].push({id:Date.now(),name,num,pos});
-  fbSave();
-  showAlertId('p-alert',`${name} eklendi`,true);
-  document.getElementById('p-name').value='';document.getElementById('p-num').value='';
-  renderAdminPlayerList(selPTeam);refreshAll();
+  const photoInput=document.getElementById('p-photo');
+  const photoFile=photoInput&&photoInput.files[0];
+  function doSave(photo){
+    PLAYERS[selPTeam].push({id:Date.now(),name,num,pos,photo:photo||'',value:100});
+    fbSave();
+    showAlertId('p-alert',`${name} eklendi`,true);
+    document.getElementById('p-name').value='';
+    document.getElementById('p-num').value='';
+    if(photoInput)photoInput.value='';
+    renderAdminPlayerList(selPTeam);refreshAll();
+  }
+  if(photoFile){
+    if(photoFile.size>1*1024*1024){showAlertId('p-alert','Fotoğraf max 1MB!',false);return;}
+    const rd=new FileReader();rd.onload=e=>doSave(e.target.result);rd.readAsDataURL(photoFile);
+  } else doSave('');
 }
 function deletePlayer(team,id){
   if(!confirm('Silinsin mi?'))return;
@@ -1526,27 +1560,57 @@ function renderAdminPlayerList(team){
   if(!list.length){el.innerHTML='<div class="empty-state">Kadro boş</div>';return;}
   el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border)">
-      <th style="text-align:left;padding:6px 4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:400">#</th>
-      <th style="text-align:left;padding:6px 4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:400">Oyuncu</th>
+      <th style="padding:6px 4px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:400">Foto</th>
+      <th style="text-align:left;padding:6px 4px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:400">#</th>
+      <th style="text-align:left;padding:6px 4px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:400">Oyuncu</th>
       <th style="padding:6px 4px;text-align:center;font-size:12px" title="Gol">⚽</th>
       <th style="padding:6px 4px;text-align:center;font-size:12px" title="Asist">🎯</th>
       <th style="padding:6px 4px;text-align:center" title="Sarı"><span class="card-y"></span></th>
       <th style="padding:6px 4px;text-align:center" title="Kırmızı"><span class="card-r"></span></th>
+      <th style="padding:6px 4px;text-align:right;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:400">Değer</th>
       <th></th>
     </tr></thead><tbody>
     ${list.map(p=>{
       const ps=allStats.find(s=>s.name===p.name&&s.team===team)||{};
+      const val=p.value||100;
+      const valColor=val>100?'var(--accent-l)':val<100?'var(--red-l)':'var(--text3)';
+      const valArrow=val>100?'▲':val<100?'▼':'–';
+      const photoCell=p.photo
+        ?`<div style="position:relative;display:inline-block">
+            <img src="${p.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;display:block;border:1px solid var(--border2)">
+            <button onclick="removePlayerPhoto('${esc(team)}',${p.id})" style="position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:var(--red-l);border:none;color:#fff;font-size:8px;cursor:pointer;padding:0;line-height:1">×</button>
+          </div>`
+        :`<label style="cursor:pointer;display:block;width:32px;height:32px" title="Fotoğraf ekle">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--bg4);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:12px">📷</div>
+            <input type="file" accept="image/*" style="display:none" onchange="uploadPlayerPhoto('${esc(team)}',${p.id},this)">
+          </label>`;
       return`<tr style="border-bottom:1px solid var(--border2)">
+        <td style="padding:6px 4px">${photoCell}</td>
         <td style="padding:6px 4px;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--text3)">${p.num||'—'}</td>
         <td style="padding:6px 4px"><div style="font-weight:600;font-size:12px">${p.name}</div><div style="font-size:9px;color:var(--accent-l);font-family:'JetBrains Mono',monospace">${p.pos}</div></td>
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--accent-l)">${ps.goals||'—'}</td>
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--gold-l)">${ps.assists||'—'}</td>
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--yellow-l)">${ps.yellow||'—'}</td>
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--red-l)">${ps.red||'—'}</td>
+        <td style="text-align:right;padding:6px 4px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;color:${valColor}">${valArrow} ${val}</td>
         <td style="text-align:right;padding:4px"><button class="btn btn-danger btn-sm" onclick="deletePlayer('${esc(team)}',${p.id})">×</button></td>
       </tr>`;
     }).join('')}
     </tbody></table>`;
+}
+function uploadPlayerPhoto(team,id,input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>1*1024*1024){alert('Max 1MB');return;}
+  const rd=new FileReader();
+  rd.onload=e=>{
+    const p=(PLAYERS[team]||[]).find(x=>x.id===id);
+    if(p){p.photo=e.target.result;fbSave();renderAdminPlayerList(team);}
+  };
+  rd.readAsDataURL(file);
+}
+function removePlayerPhoto(team,id){
+  const p=(PLAYERS[team]||[]).find(x=>x.id===id);
+  if(p){p.photo='';fbSave();renderAdminPlayerList(team);}
 }
 
 // ================================================================
