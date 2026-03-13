@@ -27,18 +27,18 @@
   --transition: .18s cubic-bezier(.4,0,.2,1);
 }
 [data-theme="dark"] {
-  --bg: #060b14;
-  --bg2: #0d1726;
-  --bg3: #111f36;
-  --bg4: #172540;
+  --bg: #060c18;
+  --bg2: #0d1a2e;
+  --bg3: #122040;
+  --bg4: #172650;
   --border: rgba(255,255,255,.08);
   --border2: rgba(255,255,255,.04);
-  --text: #e2eaf8;
+  --text: #dce8ff;
   --text2: #7a9cc8;
   --text3: #3d6088;
-  --card-bg: #0d1726;
-  --nav-bg: rgba(6,11,20,.92);
-  --input-bg: #0a1220;
+  --card-bg: #0d1a2e;
+  --nav-bg: rgba(6,12,24,.92);
+  --input-bg: #0a1525;
   --overlay: rgba(0,0,0,.6);
 }
 [data-theme="light"] {
@@ -143,12 +143,12 @@ nav{position:sticky;top:0;z-index:500;height:64px;background:var(--nav-bg);backd
 .mc-date-time{font-size:11px;color:var(--text3);margin-left:auto;display:flex;align-items:center;gap:4px}
 .mc-date-time .dot{width:3px;height:3px;border-radius:50%;background:var(--text3)}
 .mc-body{padding:14px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
-.mc-side{display:flex;align-items:center;gap:10px}
+.mc-side{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
 .mc-side.away{flex-direction:row-reverse;text-align:right}
 .mc-logo-wrap{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px}
 .mc-logo-wrap img{width:100%;height:100%;object-fit:cover}
-.mc-team-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;color:var(--text);line-height:1.2}
-.mc-score-box{text-align:center;min-width:90px;flex-shrink:0}
+.mc-team-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc-score-box{text-align:center;flex-shrink:0;padding:0 6px;min-width:80px}
 .mc-score-num{font-family:'Poppins',sans-serif;font-weight:800;font-size:26px;line-height:1;color:var(--text);letter-spacing:-1px;white-space:nowrap}
 .mc-score-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
 .mc-upcoming .mc-score-num{font-size:16px;color:var(--text3)}
@@ -433,7 +433,7 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
   <div class="hero">
     <div class="hero-eyebrow">⚽ 2024 – 2025 Sezonu</div>
     <h1 class="hero-title">AYBU<em>Futbol Ligi</em></h1>
-    <p class="hero-sub"></p>
+    <p class="hero-sub">Ankara Yıldırım Beyazıt Üniversitesi</p>
     <div class="hero-stats">
       <div class="hstat"><div class="hstat-v">16</div><div class="hstat-l">Takım</div></div>
       <div class="hstat"><div class="hstat-v">4</div><div class="hstat-l">Grup</div></div>
@@ -705,10 +705,7 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
                 </select>
               </div>
               <div class="form-group" style="margin:0"><label class="form-label">Fotoğraf (opsiyonel)</label>
-                <div class="upload-zone" style="padding:10px">
-                  <input type="file" accept="image/*" id="p-photo" onchange="previewPlayerPhoto(this)">
-                  <div class="upload-text" id="p-photo-label">📷 <em>Fotoğraf yükle</em></div>
-                </div>
+                <div class="upload-zone"><input type="file" accept="image/*" id="p-photo"><div class="upload-text">📷 <em>Fotoğraf yükle</em></div></div>
               </div>
             </div>
             <button class="btn btn-primary" style="margin-top:12px" onclick="addPlayer()">➕ Oyuncu Ekle</button>
@@ -725,7 +722,7 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
 
 <footer>
   <div class="f-logo">AYBU Futbol Ligi</div>
-  <div class="f-copy">X</div>
+  <div class="f-copy">© 2025 Ankara Yıldırım Beyazıt Üniversitesi</div>
 </footer>
 
 <script>
@@ -968,18 +965,13 @@ function setHomeGroup(g){
 function renderStatWidget(id,list,field,label,color){
   const el=document.getElementById(id);
   if(!list.length){el.innerHTML=`<div class="empty-state" style="padding:16px">Henüz ${label} yok</div>`;return;}
-  el.innerHTML=list.map((s,i)=>{
-    const playerObj=(PLAYERS[s.team]||[]).find(p=>p.name===s.name);
-    const avatarHtml=playerObj&&playerObj.photo
-      ?`<div class="stat-avatar"><img src="${playerObj.photo}" style="width:100%;height:100%;object-fit:cover"></div>`
-      :`<div class="stat-avatar" style="color:${color}">${(s.name.split(' ').map(w=>w[0]).join('')||'?').slice(0,2).toUpperCase()}</div>`;
-    return`<div class="stat-row">
+  el.innerHTML=list.map((s,i)=>`
+    <div class="stat-row">
       <span class="stat-rank ${i===0?'g1':''}">${i+1}</span>
-      ${avatarHtml}
+      <div class="stat-avatar" style="color:${color}">${(s.name.split(' ').map(w=>w[0]).join('')||'?').slice(0,2).toUpperCase()}</div>
       <div class="stat-info"><div class="stat-name">${s.name}</div><div class="stat-team">${s.team}</div></div>
       <div style="text-align:right"><div class="stat-val" style="color:${color}">${s[field]}</div><div class="stat-val-sub">${label}</div></div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
 function renderCardWidget(list){
@@ -1093,12 +1085,10 @@ function openTeamDetail(name){
     if(ps.yellow>0)tags.push(`<span class="ptag ptag-y"><span class="card-y"></span> ${ps.yellow}</span>`);
     if(ps.red>0)tags.push(`<span class="ptag ptag-r"><span class="card-r"></span> ${ps.red}</span>`);
     return`<div class="player-card">
-      ${p.photo
-        ?`<div style="width:42px;height:42px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid var(--border2)"><img src="${p.photo}" style="width:100%;height:100%;object-fit:cover"></div>`
-        :`<div class="player-num-badge">${p.num||'?'}</div>`}
+      ${p.photo?`<img src="${p.photo}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border2)">`:`<div class="player-num-badge">${p.num||'?'}</div>`}
       <div class="player-info">
         <div class="player-name">${p.name}</div>
-        <div class="player-pos">${p.pos}${p.photo&&p.num?`<span style="color:var(--text3)"> · #${p.num}</span>`:''}</div>
+        <div class="player-pos">${p.pos}</div>
         ${tags.length?`<div class="player-tags">${tags.join('')}</div>`:''}
       </div>
     </div>`;
@@ -1523,25 +1513,19 @@ function addPlayer(){
   if(PLAYERS[selPTeam].find(p=>p.name===name)){showAlertId('p-alert','Bu oyuncu zaten kayıtlı!',false);return;}
   const photoInput=document.getElementById('p-photo');
   const photoFile=photoInput&&photoInput.files[0];
-  function doAdd(photoData){
-    PLAYERS[selPTeam].push({id:Date.now(),name,num,pos,photo:photoData||''});
+  function doSave(photo){
+    PLAYERS[selPTeam].push({id:Date.now(),name,num,pos,photo:photo||''});
     fbSave();
     showAlertId('p-alert',`${name} eklendi`,true);
-    document.getElementById('p-name').value='';document.getElementById('p-num').value='';
-    if(photoInput){photoInput.value='';document.getElementById('p-photo-label').innerHTML='📷 <em>Fotoğraf yükle</em>';}
+    document.getElementById('p-name').value='';
+    document.getElementById('p-num').value='';
+    if(photoInput)photoInput.value='';
     renderAdminPlayerList(selPTeam);refreshAll();
   }
   if(photoFile){
-    if(photoFile.size>1*1024*1024){showAlertId('p-alert','Fotoğraf max 1MB olmalı!',false);return;}
-    const reader=new FileReader();
-    reader.onload=e=>doAdd(e.target.result);
-    reader.readAsDataURL(photoFile);
-  } else doAdd('');
-}
-function previewPlayerPhoto(input){
-  const lbl=document.getElementById('p-photo-label');
-  if(input.files[0])lbl.innerHTML=`✅ <em>${input.files[0].name}</em>`;
-  else lbl.innerHTML='📷 <em>Fotoğraf yükle</em>';
+    if(photoFile.size>1*1024*1024){showAlertId('p-alert','Fotoğraf max 1MB!',false);return;}
+    const rd=new FileReader();rd.onload=e=>doSave(e.target.result);rd.readAsDataURL(photoFile);
+  } else doSave('');
 }
 function deletePlayer(team,id){
   if(!confirm('Silinsin mi?'))return;
@@ -1555,7 +1539,7 @@ function renderAdminPlayerList(team){
   if(!list.length){el.innerHTML='<div class="empty-state">Kadro boş</div>';return;}
   el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border)">
-      <th style="text-align:left;padding:6px 4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:400">Foto</th>
+      <th style="padding:6px 4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:400">Foto</th>
       <th style="text-align:left;padding:6px 4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:400">#</th>
       <th style="text-align:left;padding:6px 4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:400">Oyuncu</th>
       <th style="padding:6px 4px;text-align:center;font-size:12px" title="Gol">⚽</th>
@@ -1566,11 +1550,11 @@ function renderAdminPlayerList(team){
     </tr></thead><tbody>
     ${list.map(p=>{
       const ps=allStats.find(s=>s.name===p.name&&s.team===team)||{};
-      const photoHtml=p.photo
-        ?`<div style="position:relative;display:inline-block"><img src="${p.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border2)"><button onclick="removePlayerPhoto('${esc(team)}',${p.id})" title="Kaldır" style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--red-l);border:none;color:#fff;font-size:8px;cursor:pointer;line-height:1;padding:0">×</button></div>`
-        :`<label style="cursor:pointer" title="Fotoğraf yükle"><div style="width:32px;height:32px;border-radius:50%;background:var(--bg4);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px">📷</div><input type="file" accept="image/*" style="display:none" onchange="uploadPlayerPhoto('${esc(team)}',${p.id},this)"></label>`;
+      const fotoCell=p.photo
+        ?`<div style="position:relative;display:inline-block"><img src="${p.photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;display:block"><button onclick="removePlayerPhoto('${esc(team)}',${p.id})" style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:8px;cursor:pointer;padding:0;line-height:1">×</button></div>`
+        :`<label style="cursor:pointer;display:block;width:30px;height:30px" title="Fotoğraf ekle"><div style="width:30px;height:30px;border-radius:50%;background:var(--bg4);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px">📷</div><input type="file" accept="image/*" style="display:none" onchange="uploadPlayerPhoto('${esc(team)}',${p.id},this)"></label>`;
       return`<tr style="border-bottom:1px solid var(--border2)">
-        <td style="padding:6px 4px">${photoHtml}</td>
+        <td style="padding:6px 4px">${fotoCell}</td>
         <td style="padding:6px 4px;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--text3)">${p.num||'—'}</td>
         <td style="padding:6px 4px"><div style="font-weight:600;font-size:12px">${p.name}</div><div style="font-size:9px;color:var(--accent-l);font-family:'JetBrains Mono',monospace">${p.pos}</div></td>
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--accent-l)">${ps.goals||'—'}</td>
@@ -1585,17 +1569,13 @@ function renderAdminPlayerList(team){
 function uploadPlayerPhoto(team,id,input){
   const file=input.files[0];if(!file)return;
   if(file.size>1*1024*1024){alert('Max 1MB');return;}
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const p=(PLAYERS[team]||[]).find(x=>x.id===id);
-    if(p){p.photo=e.target.result;fbSave();renderAdminPlayerList(team);refreshAll();}
-  };
-  reader.readAsDataURL(file);
+  const rd=new FileReader();
+  rd.onload=e=>{const p=(PLAYERS[team]||[]).find(x=>x.id===id);if(p){p.photo=e.target.result;fbSave();renderAdminPlayerList(team);refreshAll();}};
+  rd.readAsDataURL(file);
 }
 function removePlayerPhoto(team,id){
   const p=(PLAYERS[team]||[]).find(x=>x.id===id);
   if(p){p.photo='';fbSave();renderAdminPlayerList(team);refreshAll();}
-}
 }
 
 // ================================================================
