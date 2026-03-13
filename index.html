@@ -381,34 +381,30 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
 .fpill.active{background:var(--accent-dim);border-color:rgba(34,197,94,.3);color:var(--accent-ll)}
 </style>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <!-- 🔧 Firebase Config — buraya kendi config'ini yapıştır -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  
   <script>
     window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCAoQJL0bRWrFuOSJn2rIRSJWZ2hHa4vGk",
-  authDomain: "aybu-futbol-ligi.firebaseapp.com",
-  databaseURL: "https://aybu-futbol-ligi-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "aybu-futbol-ligi",
-  storageBucket: "aybu-futbol-ligi.firebasestorage.app",
-  messagingSenderId: "776337151526",
-  appId: "1:776337151526:web:58afbb42521886e218b8e7",
-  measurementId: "G-QFECNC0QWF"
-};
+      apiKey: "AIzaSyCAoQJL0bRWrFuOSJn2rIRSJWZ2hHa4vGk",
+      authDomain: "aybu-futbol-ligi.firebaseapp.com",
+      databaseURL: "https://aybu-futbol-ligi-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "aybu-futbol-ligi",
+      storageBucket: "aybu-futbol-ligi.firebasestorage.app",
+      messagingSenderId: "776337151526",
+      appId: "1:776337151526:web:58afbb42521886e218b8e7",
+      measurementId: "G-QFECNC0QWF"
+    };
   </script>
 </head>
 <body>
 
-<!-- ===== NAV ===== -->
-
-<!-- Firebase loading overlay -->
 <div id="fb-loading" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:16px">
   <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent-l);border-radius:50%;animation:spin 0.8s linear infinite"></div>
   <div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--text3);text-transform:uppercase">Yükleniyor…</div>
 </div>
 
-<!-- Bağlantı durumu -->
 <div id="fb-status" style="position:fixed;bottom:14px;right:14px;z-index:800;display:flex;align-items:center;gap:6px;background:var(--bg2,#111);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:100px;padding:5px 12px;font-family:monospace;font-size:10px;color:var(--text3,#666)">
   <div id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:#ca8a04;transition:background .5s"></div>
   <span id="fb-dot-lbl">Bağlanıyor…</span>
@@ -433,7 +429,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   </div>
 </nav>
 
-<!-- ===== HOME ===== -->
 <div id="page-home" class="page active">
   <div class="hero">
     <div class="hero-eyebrow">⚽ 2024 – 2025 Sezonu</div>
@@ -450,7 +445,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   <div class="wrap" style="padding-bottom:60px">
     <div class="main-grid">
       <div>
-        <!-- Upcoming -->
         <div id="home-upcoming-sec" style="margin-bottom:28px;display:none">
           <div class="sec-head"><div class="sec-title">Yaklaşan Maçlar</div><span class="sec-more" onclick="showPage('matches')">Tümü →</span></div>
           <div id="home-upcoming"></div>
@@ -463,7 +457,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
         <div id="home-table"></div>
       </div>
       <aside class="sidebar">
-        <!-- Announcements mini -->
         <div class="widget" id="widget-ann">
           <div class="widget-head"><span>📢 Duyurular</span><span class="widget-head-icon" style="cursor:pointer;font-size:11px;color:var(--text3)" onclick="showPage('announce')">Tümü →</span></div>
           <div id="home-ann-list"><div class="empty-state" style="padding:16px">Duyuru yok</div></div>
@@ -485,7 +478,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   </div>
 </div>
 
-<!-- ===== STANDINGS ===== -->
 <div id="page-standings" class="page">
   <div class="wrap-narrow" style="padding-top:32px;padding-bottom:60px">
     <div class="page-title">Puan Durumu</div>
@@ -494,7 +486,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   </div>
 </div>
 
-<!-- ===== MATCHES ===== -->
 <div id="page-matches" class="page">
   <div class="wrap-narrow" style="padding-top:32px;padding-bottom:60px">
     <div class="page-title">Maçlar</div>
@@ -511,7 +502,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   </div>
 </div>
 
-<!-- ===== TEAMS ===== -->
 <div id="page-teams" class="page">
   <div class="wrap" style="padding-top:32px;padding-bottom:60px">
     <div class="page-title">Takımlar</div>
@@ -521,7 +511,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   </div>
 </div>
 
-<!-- ===== TEAM DETAIL ===== -->
 <div id="page-team-detail" class="page">
   <div class="wrap-narrow" style="padding-top:28px;padding-bottom:60px">
     <div class="back-link" onclick="showPage('teams')">← Takımlara Dön</div>
@@ -529,7 +518,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   </div>
 </div>
 
-<!-- ===== ANNOUNCEMENTS ===== -->
 <div id="page-announce" class="page">
   <div class="wrap-narrow" style="padding-top:32px;padding-bottom:60px">
     <div class="page-title">Duyurular</div>
@@ -538,24 +526,20 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   </div>
 </div>
 
-<!-- ===== ADMIN ===== -->
 <div id="page-admin" class="page">
   <div class="wrap-narrow" style="padding-top:32px;padding-bottom:60px">
 
-    <!-- LOGIN -->
     <div id="admin-login-panel" class="admin-wrap">
       <div class="admin-header">⚙ Yönetici Girişi</div>
       <div class="admin-sub">Maç sonuçlarını, takımları ve oyuncuları yönetin</div>
-      <div id="login-alert" class="alert-box err">Kullanıcı adı veya şifre hatalı!</div>
+      <div id="login-alert" class="alert-box err"></div>
       <div style="max-width:320px">
-        <div class="form-group"><label class="form-label">Kullanıcı Adı</label><input class="form-control" type="text" id="au" placeholder="admin"></div>
+        <div class="form-group"><label class="form-label">E-Posta Adresi</label><input class="form-control" type="email" id="au" placeholder="admin@siteniz.com"></div>
         <div class="form-group"><label class="form-label">Şifre</label><input class="form-control" type="password" id="ap" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
-        <p style="font-size:11px;color:var(--text3);margin-top:10px;font-family:'DM Mono',monospace">admin / aybu2025</p>
       </div>
     </div>
 
-    <!-- MAIN -->
     <div id="admin-main" style="display:none">
       <div class="admin-wrap" style="padding-bottom:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
@@ -572,7 +556,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
         </div>
       </div>
 
-      <!-- TAB: RESULTS -->
       <div id="atab-results" class="admin-tab-body active" style="margin-top:16px">
         <div class="grid-2">
           <div class="a-section">
@@ -608,7 +591,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
         </div>
       </div>
 
-      <!-- TAB: EVENTS -->
       <div id="atab-events" class="admin-tab-body" style="margin-top:16px">
         <div class="grid-2">
           <div class="a-section">
@@ -653,7 +635,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
         </div>
       </div>
 
-      <!-- TAB: UPCOMING -->
       <div id="atab-upcoming" class="admin-tab-body" style="margin-top:16px">
         <div class="grid-2">
           <div class="a-section">
@@ -680,7 +661,6 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
         </div>
       </div>
 
-      <!-- TAB: ANNOUNCEMENTS -->
       <div id="atab-announce" class="admin-tab-body" style="margin-top:16px">
         <div class="grid-2">
           <div class="a-section">
@@ -704,12 +684,10 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
         </div>
       </div>
 
-      <!-- TAB: TEAMS -->
       <div id="atab-teams" class="admin-tab-body" style="margin-top:16px">
         <div id="admin-teams-list"></div>
       </div>
 
-      <!-- TAB: PLAYERS -->
       <div id="atab-players" class="admin-tab-body" style="margin-top:16px">
         <div class="a-section">
           <div class="a-section-title">Oyuncu Yönetimi</div>
@@ -748,7 +726,7 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
 // ================================================================
 // STATE & STORAGE
 // ================================================================
-const ADMIN_USER='admin',ADMIN_PASS='aybu2025';
+// GÜVENLİK GÜNCELLEMESİ: Hardcoded şifreler silindi. Auth sistemi kullanılacak.
 const GROUPS=['A','B','C','D'];
 const EMOJIS=['🦅','🐺','⚡','🔥','🌙','⭐','🏔','🌊','🛡','⚔','🦁','🐯','🌟','🔮','🎯','🏹'];
 const DEF_TEAMS={A:['Takım A1','Takım A2','Takım A3','Takım A4'],B:['Takım B1','Takım B2','Takım B3','Takım B4'],C:['Takım C1','Takım C2','Takım C3','Takım C4'],D:['Takım D1','Takım D2','Takım D3','Takım D4']};
@@ -777,11 +755,11 @@ function fbSave(){
 }
 
 let TEAMS   = JSON.parse(JSON.stringify(DEF_TEAMS));
-let RESULTS = [];   // [{g,home,away,hs,as,date,time,ts,events:[]}]
-let UPCOMING= [];   // [{id,g,home,away,date,time,venue,ts}]
-let TMETA   = {};   // {name:{img}}
-let PLAYERS = {};   // {name:[{id,name,num,pos}]}
-let ANNS    = [];   // [{id,title,body,type,date,ts}]
+let RESULTS = [];   
+let UPCOMING= [];   
+let TMETA   = {};   
+let PLAYERS = {};   
+let ANNS    = [];   
 
 let loggedIn=false,homeGroup='A',teamsGroup='A',mFilter='all',selPTeam=null,curDetailTeam=null;
 let evMatchTs=null,evType='goal';
@@ -814,7 +792,6 @@ function showAlertId(id,msg,ok){showAlert(document.getElementById(id),msg,ok)}
 // COMPUTED STATS
 // ================================================================
 function computeStats(){
-  // Returns {name, team, goals, assists, yellow, red} per player
   const map={};
   RESULTS.forEach(r=>(r.events||[]).forEach(ev=>{
     const k=ev.player+'__'+ev.team;
@@ -1167,24 +1144,43 @@ function renderAnnouncePage(){
 }
 
 // ================================================================
-// ADMIN: AUTH
+// ADMIN: AUTH (GÜVENLİ GİRİŞ YAPISI)
 // ================================================================
 function doLogin(){
-  const u=document.getElementById('au').value.trim(),p=document.getElementById('ap').value;
-  if(u===ADMIN_USER&&p===ADMIN_PASS){
-    loggedIn=true;
-    document.getElementById('admin-login-panel').style.display='none';
-    document.getElementById('admin-main').style.display='block';
-    document.getElementById('adminBtn').classList.add('active');
-    initAdmin();
-  } else showAlertId('login-alert','Hatalı giriş!',false);
+  const u=document.getElementById('au').value.trim(); // E-posta adresi
+  const p=document.getElementById('ap').value;        // Şifre
+  
+  if(!window.firebase || !firebase.auth) {
+    showAlertId('login-alert','Firebase Auth yüklenemedi!',false);
+    return;
+  }
+
+  firebase.auth().signInWithEmailAndPassword(u, p)
+    .then((userCredential) => {
+      loggedIn=true;
+      document.getElementById('admin-login-panel').style.display='none';
+      document.getElementById('admin-main').style.display='block';
+      document.getElementById('adminBtn').classList.add('active');
+      initAdmin();
+    })
+    .catch((error) => {
+      console.error("Giriş hatası:", error);
+      showAlertId('login-alert','Hatalı e-posta veya şifre!',false);
+    });
 }
+
 function doLogout(){
-  loggedIn=false;
-  document.getElementById('admin-login-panel').style.display='block';
-  document.getElementById('admin-main').style.display='none';
-  document.getElementById('adminBtn').classList.remove('active');
-  document.getElementById('ap').value='';
+  if(!window.firebase || !firebase.auth) return;
+  
+  firebase.auth().signOut().then(() => {
+    loggedIn=false;
+    document.getElementById('admin-login-panel').style.display='block';
+    document.getElementById('admin-main').style.display='none';
+    document.getElementById('adminBtn').classList.remove('active');
+    document.getElementById('ap').value='';
+  }).catch((error) => {
+    console.error("Çıkış hatası:", error);
+  });
 }
 
 function aTab(id,btn){
@@ -1613,6 +1609,21 @@ function initFirebase(){
     : firebase.initializeApp(window.FIREBASE_CONFIG||{});
   window._db = firebase.database(app);
 
+  // GÜVENLİK GÜNCELLEMESİ: Oturum durumunu dinle (Eğer sayfayı yenilerse otomatik girsin)
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      loggedIn = true;
+      if(document.getElementById('page-admin').classList.contains('active')) {
+        document.getElementById('admin-login-panel').style.display='none';
+        document.getElementById('admin-main').style.display='block';
+        document.getElementById('adminBtn').classList.add('active');
+        initAdmin();
+      }
+    } else {
+      loggedIn = false;
+    }
+  });
+
   // Bağlantı durumunu izle
   window._db.ref('.info/connected').on('value', snap => {
     const ok = snap.val();
@@ -1629,7 +1640,6 @@ function initFirebase(){
     document.getElementById('fb-loading').style.display='none';
     const d = snap.val();
     if(d){
-      // Firebase dizileri objeye çevirir {0:...,1:...} → geri array'e çevir
       const toArr = v => !v ? [] : Array.isArray(v) ? v : Object.values(v);
       const toPlayers = obj => {
         if(!obj) return {};
@@ -1652,8 +1662,9 @@ function initFirebase(){
     if(dot) dot.style.background = '#ef4444';
     if(lbl) lbl.textContent = '❌ Hata';
     let msg = err.message || String(err);
+    // GÜVENLİK GÜNCELLEMESİ: Tehlikeli hata mesajı düzeltildi
     if(msg.includes('Permission denied') || msg.includes('PERMISSION_DENIED')){
-      msg = 'İzin hatası! Firebase Console → Realtime Database → Rules → .write: true yap';
+      msg = 'İzin hatası! Veritabanı kurallarınızı (Rules) kontrol edin. .write izni "auth != null" olmalıdır.';
     }
     const e = document.createElement('div');
     e.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:900;background:#1a0505;border:1px solid #dc2626;border-radius:10px;padding:14px 20px;font-family:monospace;font-size:12px;color:#ef4444;max-width:90vw;text-align:center;line-height:1.6';
