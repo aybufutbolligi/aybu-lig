@@ -379,6 +379,36 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
 .fpill{padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:transparent;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all var(--transition)}
 .fpill:hover{border-color:rgba(59,130,246,.3);color:var(--accent-l)}
 .fpill.active{background:var(--accent-dim);border-color:rgba(59,130,246,.3);color:var(--accent-ll)}
+/* BRACKET */
+.bracket-wrap{display:flex;gap:0;overflow-x:auto;padding-bottom:20px;align-items:flex-start}
+.bracket-round{display:flex;flex-direction:column;min-width:210px;flex-shrink:0;padding:0 10px}
+.bracket-round-lbl{text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:'DM Mono',monospace;padding-bottom:14px;border-bottom:1px solid var(--border2);margin-bottom:14px}
+.bm-inner{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.bm-team{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border2)}
+.bm-team:last-child{border-bottom:none}
+.bm-team.win{background:var(--accent-dim)}
+.bm-team.win .bm-name{color:var(--accent-ll);font-weight:700}
+.bm-team.win .bm-score{color:var(--accent-l)}
+.bm-logo{width:20px;height:20px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.bm-logo img{width:100%;height:100%;object-fit:cover}
+.bm-name{font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.bm-score{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--text3);min-width:18px;text-align:right}
+.bm-tbd{font-size:11px;color:var(--text3);font-style:italic;padding:10px;text-align:center;font-family:'DM Mono',monospace}
+.bracket-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:14px}
+.bracket-admin-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:14px}
+.bracket-admin-card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--text);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border2)}
+/* PLAYERS PAGE */
+.player-market-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);transition:background var(--transition)}
+.player-market-row:hover{background:var(--bg3)}
+.player-market-row:last-child{border-bottom:none}
+.pm-rank{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--text3);width:22px;text-align:center;flex-shrink:0}
+.pm-rank.r1{color:var(--gold-l)}.pm-rank.r2{color:#94a3b8}.pm-rank.r3{color:#a16207}
+.pm-photo{width:36px;height:36px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.pm-photo img{width:100%;height:100%;object-fit:cover}
+.pm-info{flex:1;min-width:0}
+.pm-name{font-weight:600;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px}
+.pm-value{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;text-align:right}
 </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -421,6 +451,8 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
     <a onclick="showPage('standings')" id="nav-standings"><span class="ni">📊</span> Puan Durumu</a>
     <a onclick="showPage('matches')" id="nav-matches"><span class="ni">⚽</span> Maçlar</a>
     <a onclick="showPage('teams')" id="nav-teams"><span class="ni">🛡</span> Takımlar</a>
+    <a onclick="showPage('players')" id="nav-players"><span class="ni">👤</span> Oyuncular</a>
+    <a onclick="showPage('bracket')" id="nav-bracket"><span class="ni">🏆</span> Turnuva Ağacı</a>
     <a onclick="showPage('announce')" id="nav-announce"><span class="ni">📢</span> Duyurular</a>
   </div>
   <div class="nav-end">
@@ -518,6 +550,22 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
   </div>
 </div>
 
+<div id="page-players" class="page">
+  <div class="wrap-narrow" style="padding-top:32px;padding-bottom:60px">
+    <div class="page-title">Oyuncular</div>
+    <div class="page-subtitle">Piyasa değerine göre sıralanmış</div>
+    <div id="all-players-list"></div>
+  </div>
+</div>
+
+<div id="page-bracket" class="page">
+  <div class="wrap" style="padding-top:32px;padding-bottom:60px">
+    <div class="page-title">Turnuva Ağacı</div>
+    <div class="page-subtitle">Çeyrek Final · Yarı Final · Final</div>
+    <div id="bracket-content"></div>
+  </div>
+</div>
+
 <div id="page-announce" class="page">
   <div class="wrap-narrow" style="padding-top:32px;padding-bottom:60px">
     <div class="page-title">Duyurular</div>
@@ -553,6 +601,7 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
           <div class="admin-tab" onclick="aTab('announce',this)">📢 Duyurular</div>
           <div class="admin-tab" onclick="aTab('teams',this)">🛡 Takımlar</div>
           <div class="admin-tab" onclick="aTab('players',this)">👤 Oyuncular</div>
+          <div class="admin-tab" onclick="aTab('bracket',this)">🏆 Turnuva Ağacı</div>
         </div>
       </div>
 
@@ -716,6 +765,20 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
           <div id="admin-player-list"></div>
         </div>
       </div>
+
+      <div id="atab-bracket" class="admin-tab-body" style="margin-top:16px">
+        <div class="a-section">
+          <div class="a-section-title">Turnuva Ağacı Yönetimi</div>
+          <div id="bracket-alert" class="alert-box"></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:10px">⚡ Çeyrek Final</div>
+          <div class="bracket-admin-grid" id="admin-bracket-qf"></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin:16px 0 10px">🔥 Yarı Final</div>
+          <div class="bracket-admin-grid" id="admin-bracket-sf"></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin:16px 0 10px">🏆 Final</div>
+          <div class="bracket-admin-grid" id="admin-bracket-f"></div>
+          <button class="btn btn-primary" style="margin-top:14px" onclick="saveBracket()">💾 Kaydet</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -741,15 +804,15 @@ function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 // ── Firebase save (debounced) ──
 let _saveTimer=null;
 function calcMarketValues(){
-  // Gol: +15, Asist: +8, Sarı kart: -5, Kırmızı kart: -20
-  // Başlangıç: 100. Min: 10, Max: 999
+  // Başlangıç: 10M€. Gol: +1.5M, Asist: +0.8M, Sarı: -0.5M, Kırmızı: -2M
+  // Min: 1M, Max: 99.9M. Değer milyon euro cinsinden tutulur (float).
   const stats=computeStats();
   GROUPS.forEach(g=>{
     (TEAMS[g]||[]).forEach(team=>{
       (PLAYERS[team]||[]).forEach(p=>{
         const ps=stats.find(s=>s.name===p.name&&s.team===team)||{goals:0,assists:0,yellow:0,red:0};
-        const score=100+(ps.goals||0)*15+(ps.assists||0)*8-(ps.yellow||0)*5-(ps.red||0)*20;
-        p.value=Math.max(10,Math.min(999,score));
+        const score=10+(ps.goals||0)*1.5+(ps.assists||0)*0.8-(ps.yellow||0)*0.5-(ps.red||0)*2;
+        p.value=Math.round(Math.max(1,Math.min(99.9,score))*10)/10;
       });
     });
   });
@@ -766,6 +829,7 @@ function fbSave(){
       tmeta: TMETA,
       players: PLAYERS,
       anns: ANNS,
+      bracket: BRACKET,
       _ts: Date.now()
     };
     window._db.ref('aybu').set(payload).catch(e=>console.warn('Firebase save error:',e));
@@ -773,11 +837,12 @@ function fbSave(){
 }
 
 let TEAMS   = JSON.parse(JSON.stringify(DEF_TEAMS));
-let RESULTS = [];   
-let UPCOMING= [];   
-let TMETA   = {};   
-let PLAYERS = {};   
-let ANNS    = [];   
+let RESULTS = [];
+let UPCOMING= [];
+let TMETA   = {};
+let PLAYERS = {};
+let ANNS    = [];
+let BRACKET = {qf:[{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null}],sf:[{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null}],f:{h:'',hs:null,a:'',as:null}};
 
 let loggedIn=false,homeGroup='A',teamsGroup='A',mFilter='all',selPTeam=null,curDetailTeam=null;
 let evMatchTs=null,evType='goal';
@@ -1099,9 +1164,10 @@ function openTeamDetail(name){
     if(ps.assists>0)tags.push(`<span class="ptag ptag-a">🎯 ${ps.assists}</span>`);
     if(ps.yellow>0)tags.push(`<span class="ptag ptag-y"><span class="card-y"></span> ${ps.yellow}</span>`);
     if(ps.red>0)tags.push(`<span class="ptag ptag-r"><span class="card-r"></span> ${ps.red}</span>`);
-    const val=p.value||100;
-    const valColor=val>100?'var(--accent-l)':val<100?'var(--red-l)':'var(--text3)';
-    const valArrow=val>100?'▲':val<100?'▼':'–';
+    const val=p.value||10;
+    const valColor=val>10?'var(--accent-l)':val<10?'var(--red-l)':'var(--text3)';
+    const valArrow=val>10?'▲':val<10?'▼':'–';
+    const valStr=val>=1?`${val}M€`:'<1M€';
     return`<div class="player-card">
       ${p.photo
         ?`<img src="${p.photo}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border2)">`
@@ -1110,7 +1176,7 @@ function openTeamDetail(name){
         <div class="player-name">${p.name}</div>
         <div class="player-pos">${p.pos}</div>
         ${tags.length?`<div class="player-tags">${tags.join('')}</div>`:''}
-        <div style="font-size:10px;font-weight:700;color:${valColor};margin-top:3px;font-family:'JetBrains Mono',monospace">${valArrow} ${val} puan</div>
+        <div style="font-size:10px;font-weight:700;color:${valColor};margin-top:3px;font-family:'JetBrains Mono',monospace">${valArrow} ${valStr}</div>
       </div>
     </div>`;
   }).join('')}</div>`:'<div class="empty-state">Oyuncu eklenmedi</div>';
@@ -1215,6 +1281,7 @@ function aTab(id,btn){
   if(id==='events')renderEvMatchList();
   if(id==='upcoming'){renderUpcomingLog();updateUpSelects();}
   if(id==='announce')renderAnnLog();
+  if(id==='bracket')renderAdminBracket();
 }
 
 function initAdmin(){
@@ -1572,9 +1639,10 @@ function renderAdminPlayerList(team){
     </tr></thead><tbody>
     ${list.map(p=>{
       const ps=allStats.find(s=>s.name===p.name&&s.team===team)||{};
-      const val=p.value||100;
-      const valColor=val>100?'var(--accent-l)':val<100?'var(--red-l)':'var(--text3)';
-      const valArrow=val>100?'▲':val<100?'▼':'–';
+      const val=p.value||10;
+      const valColor=val>10?'var(--accent-l)':val<10?'var(--red-l)':'var(--text3)';
+      const valArrow=val>10?'▲':val<10?'▼':'–';
+      const valStr=`${val}M€`;
       const photoCell=p.photo
         ?`<div style="position:relative;display:inline-block">
             <img src="${p.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;display:block;border:1px solid var(--border2)">
@@ -1592,7 +1660,7 @@ function renderAdminPlayerList(team){
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--gold-l)">${ps.assists||'—'}</td>
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--yellow-l)">${ps.yellow||'—'}</td>
         <td style="text-align:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;color:var(--red-l)">${ps.red||'—'}</td>
-        <td style="text-align:right;padding:6px 4px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;color:${valColor}">${valArrow} ${val}</td>
+        <td style="text-align:right;padding:6px 4px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;color:${valColor}">${valArrow} ${valStr}</td>
         <td style="text-align:right;padding:4px"><button class="btn btn-danger btn-sm" onclick="deletePlayer('${esc(team)}',${p.id})">×</button></td>
       </tr>`;
     }).join('')}
@@ -1611,6 +1679,151 @@ function uploadPlayerPhoto(team,id,input){
 function removePlayerPhoto(team,id){
   const p=(PLAYERS[team]||[]).find(x=>x.id===id);
   if(p){p.photo='';fbSave();renderAdminPlayerList(team);}
+}
+
+// ================================================================
+// PLAYERS PAGE
+// ================================================================
+function renderPlayersPage(){
+  const el=document.getElementById('all-players-list');
+  if(!el)return;
+  calcMarketValues();
+  // Tüm oyuncuları topla
+  const all=[];
+  GROUPS.forEach(g=>(TEAMS[g]||[]).forEach(team=>{
+    (PLAYERS[team]||[]).forEach(p=>all.push({...p,team,group:g}));
+  }));
+  if(!all.length){el.innerHTML='<div class="empty-state">Henüz oyuncu eklenmedi</div>';return;}
+  const sorted=[...all].sort((a,b)=>(b.value||10)-(a.value||10));
+  const stats=computeStats();
+  el.innerHTML=`<div class="card"><div style="overflow:hidden">
+    ${sorted.map((p,i)=>{
+      const ps=stats.find(s=>s.name===p.name&&s.team===p.team)||{};
+      const val=p.value||10;
+      const valColor=val>10?'var(--accent-l)':val<10?'var(--red-l)':'var(--text3)';
+      const valArrow=val>10?'▲':val<10?'▼':'–';
+      const rankCls=i===0?'r1':i===1?'r2':i===2?'r3':'';
+      const photoHtml=p.photo
+        ?`<div class="pm-photo"><img src="${p.photo}"></div>`
+        :`<div class="pm-photo">${(p.name.split(' ').map(w=>w[0]).join('')||'?').slice(0,2).toUpperCase()}</div>`;
+      const tags=[];
+      if(ps.goals>0)tags.push(`<span class="ptag ptag-g">⚽${ps.goals}</span>`);
+      if(ps.assists>0)tags.push(`<span class="ptag ptag-a">🎯${ps.assists}</span>`);
+      if(ps.yellow>0)tags.push(`<span class="ptag ptag-y"><span class="card-y"></span>${ps.yellow}</span>`);
+      if(ps.red>0)tags.push(`<span class="ptag ptag-r"><span class="card-r"></span>${ps.red}</span>`);
+      return`<div class="player-market-row">
+        <span class="pm-rank ${rankCls}">${i+1}</span>
+        ${photoHtml}
+        <div class="pm-info">
+          <div class="pm-name">${p.name}${p.num?' <span style="color:var(--text3);font-size:10px">#'+p.num+'</span>':''}</div>
+          <div class="pm-sub">${p.team} · ${p.pos} · ${p.group} Grubu</div>
+          ${tags.length?`<div class="player-tags" style="margin-top:4px">${tags.join('')}</div>`:''}
+        </div>
+        <div class="pm-value" style="color:${valColor}">${valArrow} ${val}M€</div>
+      </div>`;
+    }).join('')}
+  </div></div>`;
+}
+
+// ================================================================
+// BRACKET
+// ================================================================
+function bmLogoHtml(name){
+  const m=TMETA[name]||{};
+  const ei=allTeams().indexOf(name);
+  if(m.img)return`<div class="bm-logo"><img src="${m.img}"></div>`;
+  return`<div class="bm-logo">${EMOJIS[Math.max(0,ei)%16]}</div>`;
+}
+function bmHtml(match){
+  if(!match.h&&!match.a)return`<div class="bm-inner"><div class="bm-tbd">TBD</div></div>`;
+  const hW=match.hs!==null&&match.as!==null&&match.hs>match.as;
+  const aW=match.hs!==null&&match.as!==null&&match.as>match.hs;
+  return`<div class="bm-inner">
+    <div class="bm-team${hW?' win':''}">
+      ${match.h?bmLogoHtml(match.h):'<div class="bm-logo">?</div>'}
+      <span class="bm-name">${match.h||'TBD'}</span>
+      <span class="bm-score">${match.hs!==null&&match.hs!==undefined?match.hs:''}</span>
+    </div>
+    <div class="bm-team${aW?' win':''}">
+      ${match.a?bmLogoHtml(match.a):'<div class="bm-logo">?</div>'}
+      <span class="bm-name">${match.a||'TBD'}</span>
+      <span class="bm-score">${match.as!==null&&match.as!==undefined?match.as:''}</span>
+    </div>
+  </div>`;
+}
+function bmWinner(m){
+  if(!m.h||!m.a||m.hs===null||m.as===null)return'';
+  return m.hs>m.as?m.h:m.as>m.hs?m.a:'';
+}
+function renderBracket(){
+  const el=document.getElementById('bracket-content');if(!el)return;
+  const B=BRACKET;
+  const champion=bmWinner(B.f);
+  const sp=h=>`<div style="height:${h}px"></div>`;
+  const qfCol=`<div class="bracket-round">
+    <div class="bracket-round-lbl">Çeyrek Final</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${bmHtml(B.qf[0])}${sp(12)}${bmHtml(B.qf[1])}${sp(24)}${bmHtml(B.qf[2])}${sp(12)}${bmHtml(B.qf[3])}
+    </div></div>`;
+  const sfCol=`<div class="bracket-round">
+    <div class="bracket-round-lbl">Yarı Final</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${sp(28)}${bmHtml(B.sf[0])}${sp(52)}${bmHtml(B.sf[1])}${sp(28)}
+    </div></div>`;
+  const fCol=`<div class="bracket-round">
+    <div class="bracket-round-lbl">Final</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${sp(80)}${bmHtml(B.f)}
+    </div></div>`;
+  const champCol=champion?`<div style="padding:28px 0 0 10px;min-width:140px">
+    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:'DM Mono',monospace;text-align:center;margin-bottom:12px">Şampiyon</div>
+    <div style="text-align:center;background:var(--card-bg);border:1px solid rgba(59,130,246,.3);border-radius:var(--radius);padding:18px 12px">
+      <div style="font-size:30px;margin-bottom:8px">🏆</div>
+      ${bmLogoHtml(champion)}
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--accent-l);margin-top:8px;line-height:1.3">${champion}</div>
+    </div></div>`:'';
+  el.innerHTML=`<div class="bracket-wrap">${qfCol}${sfCol}${fCol}${champCol}</div>`;
+}
+function renderAdminBracket(){
+  const teams=allTeams();
+  const opts='<option value="">— Takım —</option>'+teams.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
+  function selWith(val){return opts.replace(`value="${esc(val)}"`,`value="${esc(val)}" selected`);}
+  function mForm(label,pfx,m){
+    return`<div class="bracket-admin-card">
+      <div class="bracket-admin-card-title">${label}</div>
+      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Ev Sahibi</label>
+        <select class="form-control" style="font-size:12px;padding:7px" id="${pfx}-h">${selWith(m.h||'')}</select></div>
+      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Deplasman</label>
+        <select class="form-control" style="font-size:12px;padding:7px" id="${pfx}-a">${selWith(m.a||'')}</select></div>
+      <div style="display:grid;grid-template-columns:1fr 20px 1fr;gap:6px;align-items:center">
+        <input type="number" class="form-control" id="${pfx}-hs" min="0" max="99" placeholder="—" value="${m.hs!==null&&m.hs!==undefined?m.hs:''}" style="text-align:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;padding:6px 4px">
+        <div style="text-align:center;color:var(--text3);font-size:12px">–</div>
+        <input type="number" class="form-control" id="${pfx}-as" min="0" max="99" placeholder="—" value="${m.as!==null&&m.as!==undefined?m.as:''}" style="text-align:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;padding:6px 4px">
+      </div></div>`;
+  }
+  document.getElementById('admin-bracket-qf').innerHTML=
+    mForm('Çeyrek Final 1','bqf0',BRACKET.qf[0])+mForm('Çeyrek Final 2','bqf1',BRACKET.qf[1])+
+    mForm('Çeyrek Final 3','bqf2',BRACKET.qf[2])+mForm('Çeyrek Final 4','bqf3',BRACKET.qf[3]);
+  document.getElementById('admin-bracket-sf').innerHTML=
+    mForm('Yarı Final 1','bsf0',BRACKET.sf[0])+mForm('Yarı Final 2','bsf1',BRACKET.sf[1]);
+  document.getElementById('admin-bracket-f').innerHTML=
+    mForm('Final','bf',BRACKET.f);
+}
+function saveBracket(){
+  function rd(pfx){
+    const h=document.getElementById(pfx+'-h').value;
+    const a=document.getElementById(pfx+'-a').value;
+    const hs=document.getElementById(pfx+'-hs').value;
+    const as=document.getElementById(pfx+'-as').value;
+    return{h,a,hs:hs!==''?parseInt(hs):null,as:as!==''?parseInt(as):null};
+  }
+  BRACKET.qf[0]=rd('bqf0');BRACKET.qf[1]=rd('bqf1');
+  BRACKET.qf[2]=rd('bqf2');BRACKET.qf[3]=rd('bqf3');
+  BRACKET.sf[0]=rd('bsf0');BRACKET.sf[1]=rd('bsf1');
+  BRACKET.f=rd('bf');
+  fbSave();
+  showAlertId('bracket-alert','Turnuva ağacı kaydedildi',true);
+  if(document.getElementById('page-bracket').classList.contains('active'))renderBracket();
 }
 
 // ================================================================
@@ -1642,6 +1855,8 @@ function showPage(id){
   else if(id==='standings')renderStandings();
   else if(id==='matches')renderMatches(mFilter);
   else if(id==='teams')renderTeams();
+  else if(id==='players')renderPlayersPage();
+  else if(id==='bracket')renderBracket();
   else if(id==='announce')renderAnnouncePage();
   else if(id==='admin'&&!loggedIn){
     document.getElementById('admin-login-panel').style.display='block';
@@ -1655,6 +1870,8 @@ function refreshAll(){
   if(document.getElementById('page-teams').classList.contains('active'))renderTeamsGrid();
   if(curDetailTeam&&document.getElementById('page-team-detail').classList.contains('active'))openTeamDetail(curDetailTeam);
   if(document.getElementById('page-announce').classList.contains('active'))renderAnnouncePage();
+  if(document.getElementById('page-players').classList.contains('active'))renderPlayersPage();
+  if(document.getElementById('page-bracket').classList.contains('active'))renderBracket();
   if(loggedIn)renderAdminLog();
 }
 
@@ -1717,6 +1934,7 @@ function initFirebase(){
       TMETA    = d.tmeta    || {};
       PLAYERS  = toPlayers(d.players);
       ANNS     = toArr(d.anns);
+      if(d.bracket)BRACKET=d.bracket;
     }
     renderHome();renderStandings();renderMatches();renderTeams();
   }, err=>{
