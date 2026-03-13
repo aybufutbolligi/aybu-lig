@@ -770,7 +770,9 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
         <div class="a-section">
           <div class="a-section-title">Turnuva Ağacı Yönetimi</div>
           <div id="bracket-alert" class="alert-box"></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:10px">⚡ Çeyrek Final</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:10px">🎟 Play-Off (13 Maç + 3 Bay)</div>
+          <div class="bracket-admin-grid" id="admin-bracket-po"></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin:16px 0 10px">⚡ Çeyrek Final</div>
           <div class="bracket-admin-grid" id="admin-bracket-qf"></div>
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin:16px 0 10px">🔥 Yarı Final</div>
           <div class="bracket-admin-grid" id="admin-bracket-sf"></div>
@@ -842,7 +844,12 @@ let UPCOMING= [];
 let TMETA   = {};
 let PLAYERS = {};
 let ANNS    = [];
-let BRACKET = {qf:[{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null}],sf:[{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null}],f:{h:'',hs:null,a:'',as:null}};
+let BRACKET = {
+  po: Array.from({length:13},()=>({h:'',hs:null,a:'',as:null})).concat([{bye:true,team:''},{bye:true,team:''},{bye:true,team:''}]),
+  qf:[{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null}],
+  sf:[{h:'',hs:null,a:'',as:null},{h:'',hs:null,a:'',as:null}],
+  f:{h:'',hs:null,a:'',as:null}
+};
 
 let loggedIn=false,homeGroup='A',teamsGroup='A',mFilter='all',selPTeam=null,curDetailTeam=null;
 let evMatchTs=null,evType='goal';
@@ -1758,8 +1765,30 @@ function bmWinner(m){
 function renderBracket(){
   const el=document.getElementById('bracket-content');if(!el)return;
   const B=BRACKET;
+  if(!B.po)B.po=Array.from({length:13},()=>({h:'',hs:null,a:'',as:null})).concat([{bye:true,team:''},{bye:true,team:''},{bye:true,team:''}]);
   const champion=bmWinner(B.f);
   const sp=h=>`<div style="height:${h}px"></div>`;
+
+  const poMatches=B.po.filter(m=>!m.bye);
+  const poByes=B.po.filter(m=>m.bye);
+
+  const poMatchesHtml=poMatches.map(m=>`<div style="margin-bottom:6px">${bmHtml(m)}</div>`).join('');
+  const poByesHtml=poByes.map(m=>`<div style="margin-bottom:6px"><div class="bm-inner">
+    <div class="bm-team">
+      ${m.team?bmLogoHtml(m.team):'<div class="bm-logo">—</div>'}
+      <span class="bm-name">${m.team||'?'}</span>
+      <span style="font-size:9px;background:var(--accent-dim);color:var(--accent-l);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;flex-shrink:0">BAY</span>
+    </div>
+  </div></div>`).join('');
+
+  const poCol=`<div class="bracket-round" style="min-width:220px">
+    <div class="bracket-round-lbl">Play-Off</div>
+    <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:8px">13 Maç</div>
+    ${poMatchesHtml}
+    <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace;margin:10px 0 8px">3 Bay</div>
+    ${poByesHtml}
+  </div>`;
+
   const qfCol=`<div class="bracket-round">
     <div class="bracket-round-lbl">Çeyrek Final</div>
     <div style="display:flex;flex-direction:column;gap:6px">
@@ -1776,18 +1805,19 @@ function renderBracket(){
       ${sp(80)}${bmHtml(B.f)}
     </div></div>`;
   const champCol=champion?`<div style="padding:28px 0 0 10px;min-width:140px">
-    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:'DM Mono',monospace;text-align:center;margin-bottom:12px">Şampiyon</div>
+    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace;text-align:center;margin-bottom:12px">Şampiyon</div>
     <div style="text-align:center;background:var(--card-bg);border:1px solid rgba(59,130,246,.3);border-radius:var(--radius);padding:18px 12px">
       <div style="font-size:30px;margin-bottom:8px">🏆</div>
       ${bmLogoHtml(champion)}
       <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--accent-l);margin-top:8px;line-height:1.3">${champion}</div>
     </div></div>`:'';
-  el.innerHTML=`<div class="bracket-wrap">${qfCol}${sfCol}${fCol}${champCol}</div>`;
+  el.innerHTML=`<div class="bracket-wrap">${poCol}${qfCol}${sfCol}${fCol}${champCol}</div>`;
 }
 function renderAdminBracket(){
   const teams=allTeams();
   const opts='<option value="">— Takım —</option>'+teams.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
   function selWith(val){return opts.replace(`value="${esc(val)}"`,`value="${esc(val)}" selected`);}
+  // Normal maç formu
   function mForm(label,pfx,m){
     return`<div class="bracket-admin-card">
       <div class="bracket-admin-card-title">${label}</div>
@@ -1801,6 +1831,20 @@ function renderAdminBracket(){
         <input type="number" class="form-control" id="${pfx}-as" min="0" max="99" placeholder="—" value="${m.as!==null&&m.as!==undefined?m.as:''}" style="text-align:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;padding:6px 4px">
       </div></div>`;
   }
+  // Bay formu
+  function byeForm(label,pfx,m){
+    return`<div class="bracket-admin-card" style="border-color:rgba(59,130,246,.2)">
+      <div class="bracket-admin-card-title">${label} <span style="font-size:9px;background:var(--accent-dim);color:var(--accent-l);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace">BAY</span></div>
+      <div class="form-group" style="margin:0"><label class="form-label">Bay Geçen Takım</label>
+        <select class="form-control" style="font-size:12px;padding:7px" id="${pfx}-team">${selWith(m.team||'')}</select></div>
+    </div>`;
+  }
+  if(!BRACKET.po)BRACKET.po=Array.from({length:13},()=>({h:'',hs:null,a:'',as:null})).concat([{bye:true,team:''},{bye:true,team:''},{bye:true,team:''}]);
+  const poMatches=BRACKET.po.filter(m=>!m.bye);
+  const poByes=BRACKET.po.filter(m=>m.bye);
+  document.getElementById('admin-bracket-po').innerHTML=
+    poMatches.map((m,i)=>mForm(`Play-Off Maç ${i+1}`,'bpo'+i,m)).join('')+
+    poByes.map((m,i)=>byeForm(`Bay ${i+1}`,'bpob'+i,m)).join('');
   document.getElementById('admin-bracket-qf').innerHTML=
     mForm('Çeyrek Final 1','bqf0',BRACKET.qf[0])+mForm('Çeyrek Final 2','bqf1',BRACKET.qf[1])+
     mForm('Çeyrek Final 3','bqf2',BRACKET.qf[2])+mForm('Çeyrek Final 4','bqf3',BRACKET.qf[3]);
@@ -1817,6 +1861,11 @@ function saveBracket(){
     const as=document.getElementById(pfx+'-as').value;
     return{h,a,hs:hs!==''?parseInt(hs):null,as:as!==''?parseInt(as):null};
   }
+  if(!BRACKET.po)BRACKET.po=Array.from({length:13},()=>({h:'',hs:null,a:'',as:null})).concat([{bye:true,team:''},{bye:true,team:''},{bye:true,team:''}]);
+  const poMatches=BRACKET.po.filter(m=>!m.bye);
+  const poByes=BRACKET.po.filter(m=>m.bye);
+  poMatches.forEach((m,i)=>{const r=rd('bpo'+i);m.h=r.h;m.a=r.a;m.hs=r.hs;m.as=r.as;});
+  poByes.forEach((m,i)=>{const el=document.getElementById('bpob'+i+'-team');if(el)m.team=el.value;});
   BRACKET.qf[0]=rd('bqf0');BRACKET.qf[1]=rd('bqf1');
   BRACKET.qf[2]=rd('bqf2');BRACKET.qf[3]=rd('bqf3');
   BRACKET.sf[0]=rd('bsf0');BRACKET.sf[1]=rd('bsf1');
@@ -1825,6 +1874,7 @@ function saveBracket(){
   showAlertId('bracket-alert','Turnuva ağacı kaydedildi',true);
   if(document.getElementById('page-bracket').classList.contains('active'))renderBracket();
 }
+
 
 // ================================================================
 // THEME
@@ -1934,7 +1984,10 @@ function initFirebase(){
       TMETA    = d.tmeta    || {};
       PLAYERS  = toPlayers(d.players);
       ANNS     = toArr(d.anns);
-      if(d.bracket)BRACKET=d.bracket;
+      if(d.bracket){
+        BRACKET=d.bracket;
+        if(!BRACKET.po)BRACKET.po=Array.from({length:13},()=>({h:'',hs:null,a:'',as:null})).concat([{bye:true,team:''},{bye:true,team:''},{bye:true,team:''}]);
+      }
     }
     renderHome();renderStandings();renderMatches();renderTeams();
   }, err=>{
