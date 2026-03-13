@@ -386,7 +386,7 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <!-- 🔧 Firebase Config — buraya kendi config'ini yapıştır -->
   <script>
-    const firebaseConfig = {
+    window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyCAoQJL0bRWrFuOSJn2rIRSJWZ2hHa4vGk",
   authDomain: "aybu-futbol-ligi.firebaseapp.com",
   databaseURL: "https://aybu-futbol-ligi-default-rtdb.europe-west1.firebasedatabase.app",
@@ -407,9 +407,10 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
   <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent-l);border-radius:50%;animation:spin 0.8s linear infinite"></div>
   <div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--text3);text-transform:uppercase">Yükleniyor…</div>
 </div>
-<!-- Connection status dot -->
-<div id="fb-status" style="position:fixed;bottom:14px;right:14px;z-index:800;display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)">
-  <div id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:#ca8a04"></div>
+
+<!-- Bağlantı durumu -->
+<div id="fb-status" style="position:fixed;bottom:14px;right:14px;z-index:800;display:flex;align-items:center;gap:6px;background:var(--bg2,#111);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:100px;padding:5px 12px;font-family:monospace;font-size:10px;color:var(--text3,#666)">
+  <div id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:#ca8a04;transition:background .5s"></div>
   <span id="fb-dot-lbl">Bağlanıyor…</span>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
@@ -1611,38 +1612,36 @@ function initFirebase(){
     ? firebase.apps[0]
     : firebase.initializeApp(window.FIREBASE_CONFIG||{});
   window._db = firebase.database(app);
-  
+
+  // Bağlantı durumunu izle
+  window._db.ref('.info/connected').on('value', snap => {
+    const ok = snap.val();
+    const dot = document.getElementById('fb-dot');
+    const lbl = document.getElementById('fb-dot-lbl');
+    if(dot) dot.style.background = ok ? '#22c55e' : '#ef4444';
+    if(lbl) lbl.textContent = ok ? '🟢 Canlı' : '🔴 Bağlantı yok';
+  });
+
   // Show loading
   document.getElementById('fb-loading').style.display='flex';
   
-  // Monitor connection state
-  window._db.ref('.info/connected').on('value', snap => {
-    const connected = snap.val();
-    const dot = document.getElementById('fb-dot');
-    const lbl = document.getElementById('fb-dot-lbl');
-    if(dot) dot.style.background = connected ? '#22c55e' : '#ef4444';
-    if(lbl) lbl.textContent = connected ? 'Canlı' : 'Bağlantı yok';
-  });
-
   window._db.ref('aybu').on('value', snap=>{
     document.getElementById('fb-loading').style.display='none';
     const d = snap.val();
     if(d){
-      // Firebase converts JS arrays to objects {0:{...},1:{...}} — convert back
+      // Firebase dizileri objeye çevirir {0:...,1:...} → geri array'e çevir
       const toArr = v => !v ? [] : Array.isArray(v) ? v : Object.values(v);
-      const toPlayerArr = obj => {
+      const toPlayers = obj => {
         if(!obj) return {};
-        const result = {};
-        Object.keys(obj).forEach(team => {
-          result[team] = toArr(obj[team]);
-        });
-        return result;
+        const r = {};
+        Object.keys(obj).forEach(t => { r[t] = toArr(obj[t]); });
+        return r;
       };
       TEAMS    = d.teams    || JSON.parse(JSON.stringify(DEF_TEAMS));
-      RESULTS  = toArr(d.results).map(r=>({...r, events: toArr(r.events)}));
+      RESULTS  = toArr(d.results).map(r => ({...r, events: toArr(r.events)}));
       UPCOMING = toArr(d.upcoming);
       TMETA    = d.tmeta    || {};
-      PLAYERS  = toPlayerArr(d.players);
+      PLAYERS  = toPlayers(d.players);
       ANNS     = toArr(d.anns);
     }
     renderHome();renderStandings();renderMatches();renderTeams();
@@ -1650,18 +1649,17 @@ function initFirebase(){
     document.getElementById('fb-loading').style.display='none';
     const dot = document.getElementById('fb-dot');
     const lbl = document.getElementById('fb-dot-lbl');
-    if(dot) dot.style.background='#ef4444';
-    let msg = err.message || String(err);
-    if(msg.includes('Permission denied') || msg.includes('permission_denied')){
-      msg = 'Firebase izin hatası! Rules ayarını kontrol et: .read ve .write = true olmalı';
-    }
+    if(dot) dot.style.background = '#ef4444';
     if(lbl) lbl.textContent = '❌ Hata';
-    // Show error visibly on page
-    const errDiv = document.createElement('div');
-    errDiv.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:800;background:#1a0a0a;border:1px solid #dc2626;border-radius:10px;padding:14px 20px;font-family:monospace;font-size:12px;color:#ef4444;max-width:90vw;text-align:center';
-    errDiv.innerHTML='🔥 Firebase Hatası: '+msg+'<br><small style="color:#7f1d1d;margin-top:4px;display:block">Firebase Console → Realtime Database → Rules → .write: true yap</small>';
-    document.body.appendChild(errDiv);
-    setTimeout(()=>errDiv.remove(), 12000);
+    let msg = err.message || String(err);
+    if(msg.includes('Permission denied') || msg.includes('PERMISSION_DENIED')){
+      msg = 'İzin hatası! Firebase Console → Realtime Database → Rules → .write: true yap';
+    }
+    const e = document.createElement('div');
+    e.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:900;background:#1a0505;border:1px solid #dc2626;border-radius:10px;padding:14px 20px;font-family:monospace;font-size:12px;color:#ef4444;max-width:90vw;text-align:center;line-height:1.6';
+    e.innerHTML = '🔥 Firebase Hatası<br><b>'+msg+'</b>';
+    document.body.appendChild(e);
+    setTimeout(()=>e.remove(), 15000);
     renderHome();renderStandings();renderMatches();renderTeams();
   });
 }
