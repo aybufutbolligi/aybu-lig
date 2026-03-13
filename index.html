@@ -380,10 +380,34 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace
 .fpill:hover{border-color:rgba(34,197,94,.3);color:var(--accent-l)}
 .fpill.active{background:var(--accent-dim);border-color:rgba(34,197,94,.3);color:var(--accent-ll)}
 </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- 🔧 Firebase Config — buraya kendi config'ini yapıştır -->
+  <script>
+    const firebaseConfig = {
+  apiKey: "AIzaSyCAoQJL0bRWrFuOSJn2rIRSJWZ2hHa4vGk",
+  authDomain: "aybu-futbol-ligi.firebaseapp.com",
+  projectId: "aybu-futbol-ligi",
+  storageBucket: "aybu-futbol-ligi.firebasestorage.app",
+  messagingSenderId: "776337151526",
+  appId: "1:776337151526:web:58afbb42521886e218b8e7",
+  measurementId: "G-QFECNC0QWF"
+};
+  </script>
 </head>
 <body>
 
 <!-- ===== NAV ===== -->
+
+<!-- Firebase loading overlay -->
+<div id="fb-loading" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent-l);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+  <div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--text3);text-transform:uppercase">Yükleniyor…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
 <nav>
   <div class="nav-brand" onclick="showPage('home')">
     <div class="nav-brand-icon">⚽</div>
@@ -722,15 +746,35 @@ const GROUPS=['A','B','C','D'];
 const EMOJIS=['🦅','🐺','⚡','🔥','🌙','⭐','🏔','🌊','🛡','⚔','🦁','🐯','🌟','🔮','🎯','🏹'];
 const DEF_TEAMS={A:['Takım A1','Takım A2','Takım A3','Takım A4'],B:['Takım B1','Takım B2','Takım B3','Takım B4'],C:['Takım C1','Takım C2','Takım C3','Takım C4'],D:['Takım D1','Takım D2','Takım D3','Takım D4']};
 
-function ls(k){try{const s=localStorage.getItem(k);return s?JSON.parse(s):null}catch{return null}}
-function lss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+// ── localStorage fallback (theme only) ──
+function lsGet(k){try{const s=localStorage.getItem(k);return s?JSON.parse(s):null}catch{return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 
-let TEAMS   = ls('aybu_teams')    || JSON.parse(JSON.stringify(DEF_TEAMS));
-let RESULTS = ls('aybu_results')  || [];   // [{g,home,away,hs,as,date,time,ts,events:[]}]
-let UPCOMING= ls('aybu_upcoming') || [];   // [{id,g,home,away,date,time,venue,ts}]
-let TMETA   = ls('aybu_tmeta')    || {};   // {name:{img}}
-let PLAYERS = ls('aybu_players')  || {};   // {name:[{id,name,num,pos}]}
-let ANNS    = ls('aybu_anns')     || [];   // [{id,title,body,type,date,ts}]
+// ── Firebase save (debounced) ──
+let _saveTimer=null;
+function fbSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    if(!window._db)return;
+    const payload={
+      teams: TEAMS,
+      results: RESULTS,
+      upcoming: UPCOMING,
+      tmeta: TMETA,
+      players: PLAYERS,
+      anns: ANNS,
+      _ts: Date.now()
+    };
+    window._db.ref('aybu').set(payload).catch(e=>console.warn('Firebase save error:',e));
+  },600);
+}
+
+let TEAMS   = JSON.parse(JSON.stringify(DEF_TEAMS));
+let RESULTS = [];   // [{g,home,away,hs,as,date,time,ts,events:[]}]
+let UPCOMING= [];   // [{id,g,home,away,date,time,venue,ts}]
+let TMETA   = {};   // {name:{img}}
+let PLAYERS = {};   // {name:[{id,name,num,pos}]}
+let ANNS    = [];   // [{id,title,body,type,date,ts}]
 
 let loggedIn=false,homeGroup='A',teamsGroup='A',mFilter='all',selPTeam=null,curDetailTeam=null;
 let evMatchTs=null,evType='goal';
@@ -1180,7 +1224,7 @@ function submitResult(){
   const di=RESULTS.findIndex(r=>r.g===g&&r.home===home&&r.away===away);
   if(di>=0){if(!confirm(`${home} – ${away} zaten girilmiş. Güncelle?`))return;RESULTS.splice(di,1);}
   RESULTS.push({g,home,away,hs,as,date,time,ts:Date.now(),events:[]});
-  lss('aybu_results',RESULTS);
+  fbSave();
   showAlert(al,`${home} ${hs}–${as} ${away} kaydedildi`,true);
   clearRForm();renderAdminLog();refreshAll();
 }
@@ -1190,12 +1234,12 @@ function clearRForm(){
   document.getElementById('r-date').value=new Date().toISOString().split('T')[0];
 }
 
-function clearAll(){RESULTS=[];lss('aybu_results',RESULTS);renderAdminLog();refreshAll();}
+function clearAll(){RESULTS=[];fbSave();renderAdminLog();refreshAll();}
 
 function deleteResult(ts){
   if(!confirm('Silinsin mi?'))return;
   RESULTS=RESULTS.filter(r=>r.ts!==ts);
-  lss('aybu_results',RESULTS);renderAdminLog();refreshAll();
+  fbSave();renderAdminLog();refreshAll();
   if(evMatchTs===ts){evMatchTs=null;document.getElementById('ev-editor').style.display='none';}
 }
 
@@ -1271,7 +1315,7 @@ function addMatchEvent(){
   if(!match.events)match.events=[];
   match.events.push({id:Date.now(),type:evType,team,player,min});
   match.events.sort((a,b)=>a.min-b.min);
-  lss('aybu_results',RESULTS);
+  fbSave();
   document.getElementById('ev-min').value='';
   renderEvLists(match);renderEvMatchList();refreshAll();
   const labels={goal:'Gol',assist:'Asist',yellow:'Sarı Kart',red:'Kırmızı Kart'};
@@ -1281,7 +1325,7 @@ function addMatchEvent(){
 function deleteMatchEvent(mts,eid){
   const match=RESULTS.find(r=>r.ts===mts);if(!match)return;
   match.events=(match.events||[]).filter(e=>e.id!==eid);
-  lss('aybu_results',RESULTS);renderEvLists(match);renderEvMatchList();refreshAll();
+  fbSave();renderEvLists(match);renderEvMatchList();refreshAll();
 }
 
 function renderEvLists(match){
@@ -1321,14 +1365,14 @@ function addUpcoming(){
   if(home===away){showAlert(al,'Aynı takım!',false);return;}
   if(!date){showAlert(al,'Tarih seçin!',false);return;}
   UPCOMING.push({id:Date.now(),g,home,away,date,time,venue,ts:Date.now()});
-  lss('aybu_upcoming',UPCOMING);
+  fbSave();
   showAlert(al,`${home} – ${away} programlandı`,true);
   renderUpcomingLog();refreshAll();
 }
 
 function deleteUpcoming(id){
   UPCOMING=UPCOMING.filter(u=>u.id!==id);
-  lss('aybu_upcoming',UPCOMING);renderUpcomingLog();refreshAll();
+  fbSave();renderUpcomingLog();refreshAll();
 }
 
 function renderUpcomingLog(){
@@ -1353,7 +1397,7 @@ function addAnnouncement(){
   const al=document.getElementById('ann-alert');
   if(!title){showAlert(al,'Başlık boş olamaz!',false);return;}
   ANNS.push({id:Date.now(),title,body,type,date:new Date().toISOString().split('T')[0],ts:Date.now()});
-  lss('aybu_anns',ANNS);
+  fbSave();
   showAlert(al,'Duyuru yayınlandı',true);
   document.getElementById('ann-title').value='';
   document.getElementById('ann-body').value='';
@@ -1362,7 +1406,7 @@ function addAnnouncement(){
 
 function deleteAnnouncement(id){
   ANNS=ANNS.filter(a=>a.id!==id);
-  lss('aybu_anns',ANNS);renderAnnLog();refreshAll();
+  fbSave();renderAnnLog();refreshAll();
 }
 
 function renderAnnLog(){
@@ -1410,12 +1454,12 @@ function handleTeamImg(oldName,input,g,i){
   const file=input.files[0];if(!file)return;
   if(file.size>2*1024*1024){alert('Max 2MB');return;}
   const reader=new FileReader();
-  reader.onload=e=>{TMETA[oldName]={...TMETA[oldName],img:e.target.result};lss('aybu_tmeta',TMETA);renderAdminTeams();refreshAll();};
+  reader.onload=e=>{TMETA[oldName]={...TMETA[oldName],img:e.target.result};fbSave();renderAdminTeams();refreshAll();};
   reader.readAsDataURL(file);
 }
 function removeTeamImg(name){
   if(TMETA[name])delete TMETA[name].img;
-  lss('aybu_tmeta',TMETA);renderAdminTeams();refreshAll();
+  fbSave();renderAdminTeams();refreshAll();
 }
 function saveTeamInfo(g,i){
   const inp=document.getElementById(`tn-${g}-${i}`);if(!inp)return;
@@ -1427,7 +1471,7 @@ function saveTeamInfo(g,i){
     if(PLAYERS[old]){PLAYERS[nw]=PLAYERS[old];delete PLAYERS[old];}
     if(TMETA[old]){TMETA[nw]=TMETA[old];delete TMETA[old];}
     TEAMS[g][i]=nw;
-    lss('aybu_results',RESULTS);lss('aybu_upcoming',UPCOMING);lss('aybu_players',PLAYERS);lss('aybu_tmeta',TMETA);lss('aybu_teams',TEAMS);
+    fbSave();fbSave();fbSave();fbSave();fbSave();
   }
   showAlertId('r-alert',`${nw} kaydedildi`,true);
   renderAdminTeams();updateSelects();updateUpSelects();refreshAll();renderPlayerTeamSel();
@@ -1462,7 +1506,7 @@ function addPlayer(){
   if(!PLAYERS[selPTeam])PLAYERS[selPTeam]=[];
   if(PLAYERS[selPTeam].find(p=>p.name===name)){showAlertId('p-alert','Bu oyuncu zaten kayıtlı!',false);return;}
   PLAYERS[selPTeam].push({id:Date.now(),name,num,pos});
-  lss('aybu_players',PLAYERS);
+  fbSave();
   showAlertId('p-alert',`${name} eklendi`,true);
   document.getElementById('p-name').value='';document.getElementById('p-num').value='';
   renderAdminPlayerList(selPTeam);refreshAll();
@@ -1470,7 +1514,7 @@ function addPlayer(){
 function deletePlayer(team,id){
   if(!confirm('Silinsin mi?'))return;
   PLAYERS[team]=(PLAYERS[team]||[]).filter(p=>p.id!==id);
-  lss('aybu_players',PLAYERS);renderAdminPlayerList(team);refreshAll();
+  fbSave();renderAdminPlayerList(team);refreshAll();
 }
 function renderAdminPlayerList(team){
   const el=document.getElementById('admin-player-list');
@@ -1510,10 +1554,10 @@ function toggleTheme(){
   const theme=isDark?'light':'dark';
   document.documentElement.setAttribute('data-theme',theme);
   document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';
-  lss('aybu_theme',theme);
+  lsSet('aybu_theme',theme);
 }
 (()=>{
-  const t=ls('aybu_theme')||'dark';
+  const t=lsGet('aybu_theme')||'dark';
   document.documentElement.setAttribute('data-theme',t);
   document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️';
 })();
@@ -1550,7 +1594,41 @@ function refreshAll(){
 // ================================================================
 // INIT
 // ================================================================
-renderHome();renderStandings();renderMatches();renderTeams();
+// ── Firebase init ──
+function initFirebase(){
+  if(!window.firebase){
+    console.warn('Firebase not loaded, running offline');
+    renderHome();renderStandings();renderMatches();renderTeams();
+    return;
+  }
+  const app = firebase.apps.length
+    ? firebase.apps[0]
+    : firebase.initializeApp(window.FIREBASE_CONFIG||{});
+  window._db = firebase.database(app);
+  
+  // Show loading
+  document.getElementById('fb-loading').style.display='flex';
+  
+  window._db.ref('aybu').on('value', snap=>{
+    document.getElementById('fb-loading').style.display='none';
+    const d = snap.val();
+    if(d){
+      TEAMS    = d.teams    || JSON.parse(JSON.stringify(DEF_TEAMS));
+      RESULTS  = d.results  || [];
+      UPCOMING = d.upcoming || [];
+      TMETA    = d.tmeta    || {};
+      PLAYERS  = d.players  || {};
+      ANNS     = d.anns     || [];
+    }
+    renderHome();renderStandings();renderMatches();renderTeams();
+  }, err=>{
+    document.getElementById('fb-loading').style.display='none';
+    document.getElementById('fb-loading').innerHTML='';
+    showAlertId && showAlertId('r-alert','Firebase bağlantı hatası: '+err.message, false);
+    renderHome();renderStandings();renderMatches();renderTeams();
+  });
+}
+initFirebase();
 </script>
 </body>
 </html>
