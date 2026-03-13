@@ -389,6 +389,8 @@ footer .f-copy{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',mo
 .bm-team.win{background:var(--accent-dim)}
 .bm-team.win .bm-name{color:var(--accent-ll);font-weight:700}
 .bm-team.win .bm-score{color:var(--accent-l)}
+.bm-team.lose{opacity:.45}
+.bm-team.lose .bm-name{text-decoration:line-through}
 .bm-logo{width:20px;height:20px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
 .bm-logo img{width:100%;height:100%;object-fit:cover}
 .bm-name{font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
@@ -1743,15 +1745,18 @@ function bmLogoHtml(name){
 }
 function bmHtml(match){
   if(!match.h&&!match.a)return`<div class="bm-inner"><div class="bm-tbd">TBD</div></div>`;
-  const hW=match.hs!==null&&match.as!==null&&match.hs>match.as;
-  const aW=match.hs!==null&&match.as!==null&&match.as>match.hs;
+  const scored=match.hs!==null&&match.as!==null;
+  const hW=scored&&match.hs>match.as;
+  const aW=scored&&match.as>match.hs;
+  const hLose=scored&&!hW;
+  const aLose=scored&&!aW;
   return`<div class="bm-inner">
-    <div class="bm-team${hW?' win':''}">
+    <div class="bm-team${hW?' win':''}${hLose?' lose':''}">
       ${match.h?bmLogoHtml(match.h):'<div class="bm-logo">?</div>'}
       <span class="bm-name">${match.h||'TBD'}</span>
       <span class="bm-score">${match.hs!==null&&match.hs!==undefined?match.hs:''}</span>
     </div>
-    <div class="bm-team${aW?' win':''}">
+    <div class="bm-team${aW?' win':''}${aLose?' lose':''}">
       ${match.a?bmLogoHtml(match.a):'<div class="bm-logo">?</div>'}
       <span class="bm-name">${match.a||'TBD'}</span>
       <span class="bm-score">${match.as!==null&&match.as!==undefined?match.as:''}</span>
@@ -1817,33 +1822,33 @@ function renderAdminBracket(){
   const teams=allTeams();
   const opts='<option value="">— Takım —</option>'+teams.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
   function selWith(val){return opts.replace(`value="${esc(val)}"`,`value="${esc(val)}" selected`);}
-  // Normal maç formu
-  function mForm(label,pfx,m){
+  // Play-off maç formu - serbest metin girişi
+  function poMatchForm(label,pfx,m){
     return`<div class="bracket-admin-card">
       <div class="bracket-admin-card-title">${label}</div>
-      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Ev Sahibi</label>
-        <select class="form-control" style="font-size:12px;padding:7px" id="${pfx}-h">${selWith(m.h||'')}</select></div>
-      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Deplasman</label>
-        <select class="form-control" style="font-size:12px;padding:7px" id="${pfx}-a">${selWith(m.a||'')}</select></div>
+      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Takım 1</label>
+        <input type="text" class="form-control" style="font-size:12px;padding:7px" id="${pfx}-h" placeholder="Takım adı" value="${m.h||''}"></div>
+      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Takım 2</label>
+        <input type="text" class="form-control" style="font-size:12px;padding:7px" id="${pfx}-a" placeholder="Takım adı" value="${m.a||''}"></div>
       <div style="display:grid;grid-template-columns:1fr 20px 1fr;gap:6px;align-items:center">
         <input type="number" class="form-control" id="${pfx}-hs" min="0" max="99" placeholder="—" value="${m.hs!==null&&m.hs!==undefined?m.hs:''}" style="text-align:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;padding:6px 4px">
         <div style="text-align:center;color:var(--text3);font-size:12px">–</div>
         <input type="number" class="form-control" id="${pfx}-as" min="0" max="99" placeholder="—" value="${m.as!==null&&m.as!==undefined?m.as:''}" style="text-align:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;padding:6px 4px">
       </div></div>`;
   }
-  // Bay formu
+  // Bay formu - serbest metin
   function byeForm(label,pfx,m){
     return`<div class="bracket-admin-card" style="border-color:rgba(59,130,246,.2)">
       <div class="bracket-admin-card-title">${label} <span style="font-size:9px;background:var(--accent-dim);color:var(--accent-l);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace">BAY</span></div>
       <div class="form-group" style="margin:0"><label class="form-label">Bay Geçen Takım</label>
-        <select class="form-control" style="font-size:12px;padding:7px" id="${pfx}-team">${selWith(m.team||'')}</select></div>
+        <input type="text" class="form-control" style="font-size:12px;padding:7px" id="${pfx}-team" placeholder="Takım adı" value="${m.team||''}"></div>
     </div>`;
   }
   if(!BRACKET.po)BRACKET.po=Array.from({length:13},()=>({h:'',hs:null,a:'',as:null})).concat([{bye:true,team:''},{bye:true,team:''},{bye:true,team:''}]);
   const poMatches=BRACKET.po.filter(m=>!m.bye);
   const poByes=BRACKET.po.filter(m=>m.bye);
   document.getElementById('admin-bracket-po').innerHTML=
-    poMatches.map((m,i)=>mForm(`Play-Off Maç ${i+1}`,'bpo'+i,m)).join('')+
+    poMatches.map((m,i)=>poMatchForm(`Play-Off Maç ${i+1}`,'bpo'+i,m)).join('')+
     poByes.map((m,i)=>byeForm(`Bay ${i+1}`,'bpob'+i,m)).join('');
   document.getElementById('admin-bracket-qf').innerHTML=
     mForm('Çeyrek Final 1','bqf0',BRACKET.qf[0])+mForm('Çeyrek Final 2','bqf1',BRACKET.qf[1])+
